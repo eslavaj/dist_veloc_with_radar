@@ -20,10 +20,15 @@ Using 2D-FFT
 
 ## CFAR implementation
 2D-CFAR to remove false detections
-1) Define the number of guard and training cells
+
+1) Define the number of guard and training cells (Tr=8, Td=4, Gr=4, Gd=2, offset_threshold=7)
+
 2) Iterate over the 2D array to calculate noise level 
+
 2A) Filter Threshold is noise level + offset
+
 2B) Assign 0 to the readings under the filter threshold and 1 to the others
+
 
 ## Plotting the final output
 <img src="images/range_doppler_filtered.png" width="779" height="414" /> 
