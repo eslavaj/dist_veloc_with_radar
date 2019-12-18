@@ -159,13 +159,18 @@ figure,surf(doppler_axis,range_axis,RDM);
 
 % *%TODO* :
 %Select the number of Training Cells in both the dimensions.
+Tr = 8;
+Td = 4;
 
 % *%TODO* :
 %Select the number of Guard Cells in both dimensions around the Cell under 
 %test (CUT) for accurate estimation
+Gr = 4;
+Gd = 2;
 
 % *%TODO* :
 % offset the threshold by SNR value in dB
+offset_th=7;
 
 % *%TODO* :
 %Create a vector to store noise_level for each iteration on training cells
@@ -184,31 +189,48 @@ noise_level = zeros(1,1);
 %it a value of 1, else equate it to 0.
 
 
-   % Use RDM[x,y] as the matrix from the output of 2D FFT for implementing
-   % CFAR
+% Use RDM[x,y] as the matrix from the output of 2D FFT for implementing
+% CFAR
+r_start = Tr + Gr +1;
+r_end = Nr/2 - Tr - Gr;
+d_start = Td + Gd +1;
+d_end = Nd - Td - Gd;
+nbr_tr_cell = (2*Tr+2*Gr+1)*(2*Td+2*Gd+1) - (2*Gr+1)*(2*Gd+1);
 
+RDM_pw = db2pow(RDM);
+RDM_filt = zeros(Nr/2,Nd);
 
+sum_block = 0;
+sum_g_and_cut = 0;
 
-
-
+for r = r_start : r_end
+    for d = d_start : d_end
+        sum_block = sum( sum(RDM_pw(r-Tr-Gr: r+Tr+Gr, d-Td-Gd:d+Td+Gd)) );
+        sum_g_and_cut = sum( sum(RDM_pw(r-Gr: r+Gr, d-Gd:d+Gd)) );        
+        noise_level(1, 1) = (sum_block - sum_g_and_cut)/nbr_tr_cell;        
+        noise_level(1, 1) = pow2db(noise_level(1, 1)) + offset_th;
+        if(RDM(r,d) > noise_level(1, 1))
+            RDM_filt(r,d) = 1;          
+        else
+            RDM_filt(r,d) = 0;            
+        end
+    end
+end
+ 
 % *%TODO* :
 % The process above will generate a thresholded block, which is smaller 
 %than the Range Doppler Map as the CUT cannot be located at the edges of
 %matrix. Hence,few cells will not be thresholded. To keep the map size same
 % set those values to 0. 
- 
 
-
-
-
-
+%This step is not needed because elments of RDM_filt have been initialized to zero
 
 
 
 % *%TODO* :
 %display the CFAR output using the Surf function like we did for Range
 %Doppler Response output.
-figure,surf(doppler_axis,range_axis,'replace this with output');
+figure,surf(doppler_axis,range_axis,RDM_filt);
 colorbar;
 
 
